@@ -15,26 +15,31 @@ interface ApiOrder {
   totalAmount?: number
   paymentMethod?: PaymentMethod
   shippingInfo?: ShippingInfo
+  user?: {
+    email?: string
+  }
   items?: CartItem[]
   createdAt: string
 }
 
 function mapOrder(order: ApiOrder): Order {
+  const shippingInfo = order.shippingInfo
+  const customerEmail = shippingInfo?.email ?? order.user?.email ?? ''
+
   return {
     id: order.id,
     status: order.status,
     totalAmount: Number(order.totalAmount ?? order.total ?? 0),
     paymentMethod: order.paymentMethod ?? 'CASH_ON_DELIVERY',
-    shippingInfo:
-      order.shippingInfo ??
-      ({
-        fullName: '',
-        email: '',
-        phoneNumber: '',
-        shippingAddress: '',
-        city: '',
-        requiresPostalCode: false,
-      } as ShippingInfo),
+    shippingInfo: {
+      fullName: shippingInfo?.fullName ?? '',
+      email: customerEmail,
+      phoneNumber: shippingInfo?.phoneNumber ?? '',
+      shippingAddress: shippingInfo?.shippingAddress ?? '',
+      city: shippingInfo?.city ?? '',
+      postalCode: shippingInfo?.postalCode,
+      requiresPostalCode: shippingInfo?.requiresPostalCode ?? false,
+    },
     items: order.items ?? [],
     createdAt: order.createdAt,
   }

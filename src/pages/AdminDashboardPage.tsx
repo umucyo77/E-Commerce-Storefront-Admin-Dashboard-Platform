@@ -91,6 +91,16 @@ export function AdminDashboardPage() {
     (productsQuery.data ?? []).map((product) => [product.id, product.title]),
   )
 
+  const getCustomerDisplayName = (fullName?: string, email?: string) => {
+    const trimmedEmail = email?.trim()
+    if (trimmedEmail) return trimmedEmail
+
+    const trimmedFullName = fullName?.trim()
+    if (trimmedFullName) return trimmedFullName
+
+    return 'N/A'
+  }
+
   return (
     <section>
       <div className="row between">
@@ -144,6 +154,7 @@ export function AdminDashboardPage() {
           <thead>
             <tr>
               <th>Order</th>
+              <th>Client Email</th>
               <th>Products</th>
               <th>Total</th>
               <th>Status</th>
@@ -154,6 +165,12 @@ export function AdminDashboardPage() {
             {ordersQuery.data?.map((order) => (
               <tr key={order.id}>
                 <td>{order.id}</td>
+                <td>
+                  {getCustomerDisplayName(
+                    order.shippingInfo?.fullName,
+                    order.shippingInfo?.email,
+                  )}
+                </td>
                 <td>
                   {order.items.length ? (
                     <div className="order-products">
