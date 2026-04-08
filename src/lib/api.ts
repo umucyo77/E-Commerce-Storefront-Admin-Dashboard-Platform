@@ -7,7 +7,7 @@ export const api = axios.create({
   baseURL:
     import.meta.env.VITE_API_BASE_URL ??
     'https://e-commas-apis-production.up.railway.app',
-  timeout: 30000,
+  
 })
 
 api.interceptors.request.use((config) => {
