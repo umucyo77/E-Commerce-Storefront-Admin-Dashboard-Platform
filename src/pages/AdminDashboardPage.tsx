@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import axios from 'axios'
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { ConfirmModal } from '../components/ConfirmModal'
@@ -65,7 +66,13 @@ export function AdminDashboardPage() {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.categories })
       showToast('Category saved')
     },
-    onError: (error) => showToast(getErrorMessage(error), 'error'),
+    onError: (error) =>
+      showToast(
+        axios.isAxiosError(error) && error.response?.status === 409
+          ? 'Category already exists'
+          : getErrorMessage(error),
+        'error',
+      ),
   })
 
   const deleteCategoryMutation = useMutation({
@@ -100,6 +107,8 @@ export function AdminDashboardPage() {
 
     return 'N/A'
   }
+
+  const normalizedCategoryName = categoryName.trim()
 
   return (
     <section>
@@ -221,8 +230,23 @@ export function AdminDashboardPage() {
         className="row"
         onSubmit={(event) => {
           event.preventDefault()
-          if (!categoryName.trim()) return
-          categoryMutation.mutate({ id: editCategoryId ?? undefined, name: categoryName })
+          if (!normalizedCategoryName) return
+
+          const duplicateCategory = categoriesQuery.data?.some(
+            (category) =>
+              category.id !== editCategoryId &&
+              category.name.trim().toLowerCase() === normalizedCategoryName.toLowerCase(),
+          )
+
+          if (duplicateCategory) {
+            showToast('Category already exists', 'error')
+            return
+          }
+
+          categoryMutation.mutate({
+            id: editCategoryId ?? undefined,
+            name: normalizedCategoryName,
+          })
         }}
       >
         <input
